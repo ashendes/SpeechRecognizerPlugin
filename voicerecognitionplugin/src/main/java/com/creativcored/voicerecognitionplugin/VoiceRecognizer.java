@@ -32,7 +32,7 @@ public class VoiceRecognizer extends AppCompatActivity implements RecognitionLis
     private boolean recognizing = false;
     private String recognizedText;
 
-    private static final int REQUEST_MIC = 0;
+    //private static final int REQUEST_MIC = 0;
 
     /*@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +80,7 @@ public class VoiceRecognizer extends AppCompatActivity implements RecognitionLis
 
     // Activate microphone and start listening
     public void activateListener(){
-        getPermissions();
+        //getPermissions();
         speech.startListening(recognizerIntent);
         recognizing = true;
     }
@@ -88,6 +88,10 @@ public class VoiceRecognizer extends AppCompatActivity implements RecognitionLis
     // Check whether Recognizer is in recognizing state for obtaining results
     public boolean getRecognizingState(){
         return recognizing;
+    }
+
+    public String getRecognizedText(){
+        return recognizedText;
     }
 
     @Override
@@ -105,30 +109,6 @@ public class VoiceRecognizer extends AppCompatActivity implements RecognitionLis
 
     }
 
-    @TargetApi(23)
-    public void getPermissions(){
-        if(checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED){
-            return;
-        }else{
-            if(shouldShowRequestPermissionRationale(android.Manifest.permission.RECORD_AUDIO)){
-                Toast.makeText(this, "Audio recording permission is needed", Toast.LENGTH_SHORT).show();
-            }
-            requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, REQUEST_MIC);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
-        if(requestCode == REQUEST_MIC){
-            if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                onResume();
-            }else{
-                Toast.makeText(this, "Permission not granted", Toast.LENGTH_SHORT).show();
-            }
-        }else{
-            super.onRequestPermissionsResult(requestCode,permissions,grantResults);
-        }
-    }
 
     @Override
     public void onBeginningOfSpeech() {

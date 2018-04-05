@@ -1,7 +1,9 @@
 package com.creativcored.speechrecognizertest;
 
+import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -12,134 +14,69 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.creativcored.voicerecognitionplugin.VoiceRecognizer;
+
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    private TextView resultText;
+    private static final int REQUEST_MIC = 0;
 
-    private TextView resultTEXT;
-
-    private final String LOG_TAG = "SpeechRepeatActivity";
-    private SpeechRecognizer mSpeechRecognizer;
-    private Intent mSpeechRecognizerIntent;
-    private boolean mIsListening;
+    private VoiceRecognizer vrecognizer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        resultTEXT = (TextView) findViewById(R.id.tvResult);
-
-        mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-        mSpeechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
-
-        SpeechRecognitionListener listener = new SpeechRecognitionListener();
-        mSpeechRecognizer.setRecognitionListener(listener);
-
-
+        resultText = (TextView) findViewById(R.id.tvResult);
+        vrecognizer = VoiceRecognizer.initializeVoiceRecognizer(getApplicationContext());
     }
 
     public void promptSpeechInput(View view){
-        /*Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        i.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something..");
+        getPermissions();
+        vrecognizer.activateListener();
+    }
 
-        try{
-            startActivityForResult(i, 100);
-        } catch (ActivityNotFoundException e){
-            Toast.makeText(MainActivity.this , "Speech language not supported", Toast.LENGTH_LONG).show();
-        }*/
+    public void getResults(View view){
+        if(!vrecognizer.getRecognizingState()){
+            resultText.setText(vrecognizer.getRecognizedText());
+        }
+    }
 
-        if (!mIsListening)
+
+    protected void onDestroy() {
+        super.onDestroy();
+        if (vrecognizer != null)
         {
-            mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
-            Log.d(LOG_TAG, "Listening");
+            //vrecognizer = null;
+        }
+    }
+
+    @TargetApi(23)
+    public void getPermissions(){
+        if(checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED){
+            return;
+        }else{
+            if(shouldShowRequestPermissionRationale(android.Manifest.permission.RECORD_AUDIO)){
+                Toast.makeText(this, "Audio recording permission is needed", Toast.LENGTH_SHORT).show();
+            }
+            requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, REQUEST_MIC);
         }
     }
 
     @Override
-    public void onActivityResult(int request_code, int result_code, Intent i){
-        super.onActivityResult(request_code, result_code,i);
-
-        switch(request_code){
-            case 100: if(result_code== RESULT_OK && i != null){
-                ArrayList<String> result = i.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                resultTEXT.setText(result.get(0));
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
+        if(requestCode == REQUEST_MIC){
+            if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                onResume();
+            }else{
+                Toast.makeText(this, "Permission not granted", Toast.LENGTH_SHORT).show();
             }
-            break;
+        }else{
+            super.onRequestPermissionsResult(requestCode,permissions,grantResults);
         }
     }
 
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mSpeechRecognizer != null)
-        {
-            mSpeechRecognizer.destroy();
-        }
-    }
-
-
-    protected class SpeechRecognitionListener implements RecognitionListener
-    {
-
-        @Override
-        public void onBeginningOfSpeech()
-        {
-            //Log.d(TAG, "onBeginingOfSpeech");
-        }
-
-        @Override
-        public void onBufferReceived(byte[] buffer)
-        {
-
-        }
-
-        @Override
-        public void onEndOfSpeech()
-        {
-            //Log.d(TAG, "onEndOfSpeech");
-        }
-
-        @Override
-        public void onError(int error)
-        {
-            mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
-
-            //Log.d(TAG, "error = " + error);
-        }
-
-        @Override
-        public void onEvent(int eventType, Bundle params)
-        {
-
-        }
-
-        @Override
-        public void onPartialResults(Bundle partialResults)
-        {
-
-        }
-
-        @Override
-        public void onReadyForSpeech(Bundle params)
-        {
-            //Log.d(TAG, "onReadyForSpeech"); //$NON-NLS-1$
-        }
-
-        @Override
-        public void onResults(Bundle results)
-        {
-            //Log.d(TAG, "onResults"); //$NON-NLS-1$
-            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            // matches are the return values of speech recognition engine
-            // Use these values for whatever you wish to do
-        }
-
-        @Override
-        public void onRmsChanged(float rmsdB)
-        {
-        }
-    }
 }
