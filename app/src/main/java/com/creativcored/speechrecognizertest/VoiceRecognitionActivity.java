@@ -3,6 +3,7 @@ package com.creativcored.speechrecognizertest;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Region;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -58,15 +59,19 @@ public class VoiceRecognitionActivity extends AppCompatActivity implements Recog
             @Override
             public void onCheckedChanged(CompoundButton buttonView,
                                          boolean isChecked) {
-                if (isChecked) {
-                    getPermissions();
-                    speech.startListening(recognizerIntent);
-                } else {
-                    speech.stopListening();
-                }
+                activateListener(isChecked);
             }
         });
 
+    }
+
+    public void activateListener(boolean activate){
+        if (activate) {
+            getPermissions();
+            speech.startListening(recognizerIntent);
+        } else {
+            speech.stopListening();
+        }
     }
 
     @Override
@@ -153,9 +158,7 @@ public class VoiceRecognitionActivity extends AppCompatActivity implements Recog
         Log.i(LOG_TAG, "onResults");
         ArrayList<String> matches = results
                 .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        String text = "";
-        for (String result : matches)
-            text += result + "\n";
+        String text = matches.get(0);
 
         returnedText.setText(text);
     }
