@@ -5,16 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Debug;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.speech.tts.Voice;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.io.Console;
 import java.util.ArrayList;
 
 /**
@@ -22,6 +23,10 @@ import java.util.ArrayList;
  */
 
 public class VoiceRecognizer extends AppCompatActivity implements RecognitionListener {
+
+    private static VoiceRecognizer iInstance;
+    private static Context context;
+
     //private TextView returnedText;
     //private ToggleButton toggleButton;
 
@@ -62,8 +67,14 @@ public class VoiceRecognizer extends AppCompatActivity implements RecognitionLis
         });
     }*/
 
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        Log.v(LOG_TAG, " Created.");
+    }
+
     // SetUp VoiceRecognizer
-    private VoiceRecognizer(Context context){
+    private VoiceRecognizer(){
         speech = SpeechRecognizer.createSpeechRecognizer(context);
         speech.setRecognitionListener(this);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -74,8 +85,12 @@ public class VoiceRecognizer extends AppCompatActivity implements RecognitionLis
     }
 
     // Static method for plugin calls
-    public static VoiceRecognizer initializeVoiceRecognizer(Context context){
-        return new VoiceRecognizer(context);
+    public static VoiceRecognizer initializeVoiceRecognizer(Context appContext){
+        if(iInstance == null){
+            context = appContext;
+            iInstance = new VoiceRecognizer();
+        }
+        return iInstance;
     }
 
     // Activate microphone and start listening
